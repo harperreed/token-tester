@@ -110,46 +110,27 @@
                 v-model="IPFSMetadataHash"
               />
             </div>
-            <input v-model="tokenId" />
+            
             <div class="mb-4">
               <label
                 class="block text-gray-700 text-sm font-bold mb-2"
-                for="IPFSMetadataHash"
+                for="TokenId"
               >
-                <button
-                  class="
-                    bg-blue-500
-                    hover:bg-blue-700
-                    text-white
-                    font-bold
-                    py-2
-                    px-4
-                    rounded
-                    focus:outline-none
-                    focus:shadow-outline
-                  "
-                  @click="startTokenReview()"
-                >
-                  Start
-                </button>
-                <!-- <div
-                  v-else
-                  class="
-                    bg-blue-500
-                    hover:bg-blue-700
-                    text-white
-                    font-bold
-                    py-2
-                    px-4
-                    rounded
-                    animate-pulse
-                  "
-                >
-                  Making request...
-                </div> -->
+                <div>
+                  <ul class="flex pl-0 list-none rounded my-2 w-full">
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 ml-0 rounded-l hover:bg-gray-200"><button @click="prevTokenId" >Previous</button></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId>1"><button  @click="jumpToTokenId((tokenId-2))">{{ `${tokenId-2}` }}</button></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId>0"><button @click="jumpToTokenId((tokenId-1))">{{ `${tokenId-1}` }}</button></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200"><input v-model="tokenId" class="text-center font-bold" /></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId<24999"><button @click="jumpToTokenId((tokenId+1))">{{ `${tokenId+1}` }}</button></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId<24998"><button @click="jumpToTokenId((tokenId+2))"> {{ `${tokenId+2}` }}</button></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 rounded-r hover:bg-gray-200"><button @click="nextTokenId" v-if="!(tokenId==24999)">Next</button><div v-else>end</div></li>
+                  </ul>
+                </div>
               </label>
             </div>
           </div>
+          
         </div>
         <div class="py-3 w-full md:w-1/2">
           <div class="bg-white border rounded-xl p-4 md:ml-4">
@@ -173,7 +154,7 @@
           class="py-3 max-w-full sm:mr-4 bg-white border rounded-xl p-4"
           v-if="token"
         >
-          <div class="mb-4">
+          <div class="mb-4" v-if="token">
             <h3 class="text-xl font-bold mb-4">
               #{{ tokenId }} - {{ token.name }}
             </h3>
@@ -295,7 +276,7 @@ export default {
     return {
       contractAddress: "0x27bd53b275e7d7c812e70497b85f99cceb9a068c",
       IPFSMetadataHash: "QmV5uq3iyJ2x9ebAuK3mNqbX2Fmun1PjBnX9uLzwxUd4JH",
-      tokenId: undefined,
+      tokenId: 0,
       network: "rinkeby",
       tokenMetadataRaw: "",
       token: {},
@@ -306,10 +287,10 @@ export default {
       return `https://ipfs.io/ipfs/${this.IPFSMetadataHash}/${this.tokenId}`;
     },
     openseaTokenUrl() {
-      let host = "testnets-api.opensea.io";
+      let host = "testnets.opensea.io";
 
       if (this.network === "mainnet") {
-        host = "api.opensea.io";
+        host = "opensea.io";
       }
 
       if (this.contractAddress) {
@@ -356,20 +337,41 @@ export default {
         this.tokenMetadataRaw = "";
         this.token = {};
         const metadata = await this.getTokenPayload(this.tokenIPFSMetadataUrl);
-        this.tokenMetadataRaw = JSON.stringify(metadata, null, 2);
-        this.token = metadata;
+        if (metadata) {
+          this.tokenMetadataRaw = JSON.stringify(metadata, null, 2);
+          this.token = metadata;
+        }else{
+          // this.tokenMetadataRaw = "";
+          this.token = undefined;
+        }
       }
     },
   },
+  mounted() {
+    this.tokenId = 1;
+  },
   methods: {
+    nextTokenId() {
+      this.tokenId = parseInt(this.tokenId + 1);
+    },
+    prevTokenId() {
+      this.tokenId = parseInt(this.tokenId - 1);
+    },
+    jumpToTokenId(tokenId) {
+      this.tokenId = parseInt(tokenId);
+    },
     async startTokenReview() {
       this.tokenId = 0;
       // console.log(response.data);
     },
 
     async getTokenPayload(url) {
-      console.log(url);
+
+      try{
+
       const tokenMetadata = await this.$axios.$get(url);
+     
+
       tokenMetadata["uri"] = url;
 
       if (tokenMetadata.image.includes("ipfs://")) {
@@ -380,6 +382,11 @@ export default {
         tokenMetadata.image = ipfsUrl;
       }
       return tokenMetadata;
+       }catch(e){
+        console.log(e);
+        this.tokenMetadataRaw = JSON.stringify(e.message, null, 2);
+        return undefined
+      }
     },
     resetData() {
       this.tokenMetadata = {};

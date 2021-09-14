@@ -288,7 +288,7 @@ export default {
   },
   computed: {
     tokenIPFSMetadataUrl() {
-      return `https://ipfs.io/ipfs/${this.IPFSMetadataHash}/${this.tokenId}`;
+      return `https://nervous.mypinata.cloud/ipfs/${this.IPFSMetadataHash}/${this.tokenId}`;
     },
     openseaTokenUrl() {
       let host = "testnets.opensea.io";

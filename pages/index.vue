@@ -279,7 +279,7 @@ export default {
   data() {
     return {
       contractAddress: "0x27bd53b275e7d7c812e70497b85f99cceb9a068c",
-      IPFSMetadataHash: "QmV5uq3iyJ2x9ebAuK3mNqbX2Fmun1PjBnX9uLzwxUd4JH",
+      IPFSMetadataHash: "QmP1KQXjRSK4s2M2vfmVSUhjLdeJveBVDftnF4ngPyN8fE",
       tokenId: 0,
       network: "rinkeby",
       tokenMetadataRaw: "",

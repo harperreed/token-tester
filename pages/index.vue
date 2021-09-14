@@ -15,14 +15,12 @@
       "
     >
       <h1 class="text-3xl text-white font-bold">Harper.eth's Token Tester</h1>
-
+      {{ tokenIPFSMetadataUrl }}
       <div class="flex flex-wrap">
         <div class="w-full md:w-1/2 py-3">
           <div class="bg-white border rounded-xl p-4">
             <h3 class="text-xl font-bold mb-4">
-              <span class="text-gray-700">
-                Enter your token contract and ID
-              </span>
+              <span class="text-gray-700"> Metadata info </span>
             </h3>
             <div class="mb-4">
               <label
@@ -88,9 +86,9 @@
             <div class="mb-4">
               <label
                 class="block text-gray-700 text-sm font-bold mb-2"
-                for="tokenId"
+                for="IPFSMetadataHash"
               >
-                Token ID
+                IPFS Metadata HASH
               </label>
               <input
                 class="
@@ -108,14 +106,15 @@
                 "
                 id="text"
                 type="text"
-                placeholder="Enter Token ID"
-                v-model="tokenId"
+                placeholder="Enter metadata IPFS Hash"
+                v-model="IPFSMetadataHash"
               />
             </div>
+            <input v-model="tokenId" />
             <div class="mb-4">
               <label
                 class="block text-gray-700 text-sm font-bold mb-2"
-                for="tokenId"
+                for="IPFSMetadataHash"
               >
                 <button
                   class="
@@ -129,12 +128,11 @@
                     focus:outline-none
                     focus:shadow-outline
                   "
-                  @click="getTokenInfo()"
-                  v-if="!loading"
+                  @click="startTokenReview()"
                 >
-                  Get Token Info
+                  Start
                 </button>
-                <div
+                <!-- <div
                   v-else
                   class="
                     bg-blue-500
@@ -148,12 +146,12 @@
                   "
                 >
                   Making request...
-                </div>
+                </div> -->
               </label>
             </div>
           </div>
         </div>
-        <div class="py-3 w-full md:w-1/2 ">
+        <div class="py-3 w-full md:w-1/2">
           <div class="bg-white border rounded-xl p-4 md:ml-4">
             <p>
               Test your tokens. Enter a token ID and click the button to see if
@@ -170,135 +168,124 @@
           </div>
         </div>
       </div>
-      <div class="flex sm:flex-row flex-col" >
-        <div class="py-3 sm:max-w-lg max-w-full sm:mr-4 bg-white border rounded-xl p-4" v-if="tokenLoaded">
-
-            <div class="mb-4">
-              <h3 class="text-xl font-bold mb-4">{{ tokenMetadata.name }}</h3>
-              <img :src="tokenMetadata.image" alt="token image" />
-              <span class="text-gray-700 text-2xl border-b mt-4 font-semibold mb-2" v-if="tokenMetadata.attributes">Attributes </span>
-              <div class="flex flex-wrap" v-if="tokenMetadata.attributes">
-                <div
-                  v-for="attribute in tokenMetadata.attributes"
-                  v-bind:key="attribute.value"
+      <div class="flex sm:flex-row flex-col">
+        <div
+          class="py-3 max-w-full sm:mr-4 bg-white border rounded-xl p-4"
+          v-if="token"
+        >
+          <div class="mb-4">
+            <h3 class="text-xl font-bold mb-4">
+              #{{ tokenId }} - {{ token.name }}
+            </h3>
+            <div class="flex sm:flex-row flex-col">
+              <div class="mr-4">
+                <img
+                  :src="token.image"
+                  alt="token image "
+                  class="sm:max-w-lg"
+                />
+              </div>
+              <div >
+                <span
                   class="
-                    mr-2
+                    text-gray-700 text-2xl
+                    border-b
+                    mt-4
+                    font-semibold
                     mb-2
-                    px-2
-                    py-2
-                    rounded
-                    border
-                    bg-blue-100
-                    text-center
-                    w-auto
                   "
-                >
-                  <p class="text-gray-500 text-xs" v-if="attribute.trait_type">
-                    {{ attribute.trait_type }}
-                  </p>
-                  <p v-else class="text-gray-500 text-xs">Property</p>
-                  <p class="text-gray-900 text-lg">
-                    {{ attribute.value }}
-                  </p>
+                  v-if="token.attributes"
+                  >Attributes
+                </span>
+                <div class="flex flex-wrap" v-if="token.attributes">
+                  <div
+                    v-for="attribute in token.attributes"
+                    v-bind:key="attribute.value"
+                    class="
+                      mr-2
+                      mb-2
+                      px-2
+                      py-2
+                      rounded
+                      border
+                      bg-blue-100
+                      text-center
+                      w-auto
+                    "
+                  >
+                    <p
+                      class="text-gray-500 text-xs"
+                      v-if="attribute.trait_type"
+                    >
+                      {{ attribute.trait_type }}
+                    </p>
+                    <p v-else class="text-gray-500 text-xs">Property</p>
+                    <p class="text-gray-900 text-lg">
+                      {{ attribute.value }}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  class="text-gray-700 text-2xl border-b mt-4 font-semibold"
+                  v-if="token.description"
+                  >Description
+                </span>
+                <div class="" v-if="token.description">
+                  {{ token.description }}
+                </div>
+                <span class="text-gray-700 text-2xl border-b mt-4 font-semibold"
+                  >Misc
+                </span>
+                <div class="overflow-scroll">
+                  <ul>
+                    <li>
+                      <a :href="token.uri" target="_blank">Metadata URL</a>
+                    </li>
+                    <li v-if="openseaTokenUrl">
+                      <a :href="openseaTokenUrl" target="_blank">OpenSea URL</a>
+                    </li>
+                    <li v-if="etherscanTokenUrl"><a :href="etherscanTokenUrl" target="_blank">Etherscan Address</a></li>
+                    <li v-if="contractAddress">Contract Address: {{ this.contractAddress }}</li>
+                    
+                    <li>Token Id: {{ this.tokenId }}</li>
+                  </ul>
                 </div>
               </div>
-              <span class="text-gray-700 text-2xl border-b mt-4 font-semibold" v-if="tokenMetadata.description ">Description </span>
-              <div class="" v-if="tokenMetadata.description ">
-                {{ tokenMetadata.description }}
-              </div>
-              <span class="text-gray-700 text-2xl border-b mt-4 font-semibold">Misc </span>
-              <div class="overflow-scroll">
-                <ul>
-                <li><a :href="tokenMetadata.uri" target="_blank">Metadata URL</a></li>
-                <li>Contract Address: {{ this.contractAddress }}</li>
-                <li>Token Id: {{ this.tokenId }}</li>
-                </ul>
-              </div>
             </div>
+          </div>
 
-            <div class="mb-4">
-              <span class="text-gray-700 text-2xl border-b mt-4 font-semibold">Raw Response </span>
-              <textarea
-                class="
-                  text-gray-700 text-xs
-                  font-mono
-                  overflow-scroll
-                  bg-gray-100
-                  w-full
-                  h-36
-                "
-                v-model="tokenMetadataRaw"
-              />
-            </div>
-
-        </div>
-        <div class=" max-w-full bg-white border rounded-xl p-4" v-if="openSeaLoaded">
-          <div class="" >
-            <h3 class="text-xl font-bold mb-4">
-              <span class="text-gray-700"> OpenSea validation </span>
-            </h3>
-            <div class="mb-4">
-              <div
-                class="bg-green-500 rounded w-auto px-4 py-4 border font-medium"
-                v-if="validateResponse.valid"
-              >
-                Passed
-              </div>
-              <div
-                class="bg-red-500 rounded w-auto px-4 py-4 border font-medium"
-                v-else
-              >
-                Failed
-              </div>
-            </div>
-            <div class="mb-4 overflow-scroll max-w-sm" v-if="!validateResponse.valid">
-              <span class="text-gray-700 text-2xl border-b mt-4 font-semibold"> Errors </span>
-
-                <div v-for="error in validateResponse.errors" v-bind:key="error" class="
-                      p-2
-                      text-xs
-                      border-b
-                      text-gray-700
-                      bg-gray-100
-                      mb-2
-                    ">
-                    {{ error }}
-                  </div>
-
-            </div>
-            <div class="mb-4" v-if="validateResponseRaw">
-              <span class="text-gray-700 text-2xl border-b mt-4 font-semibold">Raw Response </span>
-              <textarea
-                class="
-                  text-gray-700 text-xs
-                  overflow-scroll
-                  bg-gray-100
-                  w-full
-                  h-36
-                  font-mono
-                "
-                v-model="validateResponseRaw"
-              />
-            </div>
+          <div class="mb-4">
+            <span class="text-gray-700 text-2xl border-b mt-4 font-semibold"
+              >Raw Response
+            </span>
+            <textarea
+              class="
+                text-gray-700 text-xs
+                font-mono
+                overflow-scroll
+                bg-gray-100
+                w-full
+                h-36
+              "
+              v-model="tokenMetadataRaw"
+            />
           </div>
         </div>
       </div>
     </div>
 
-       <div
-      class="
-        container
-        mx-auto
-
-
-
-
-        text-center
-        text-sm
-
-      "
-    >
-    <a href="https://art.pizza/#/harper.eth" class="hover:text-green-300 ">harper.eth</a> / <a class="hover:text-green-300" href="https://twitter.com/harper">@harper</a><br /> <a class="hover:text-green-300" href="mailto:harper@modest.com">harper@modest.com</a></div>
+    <div class="container mx-auto text-center text-sm">
+      <a href="https://art.pizza/#/harper.eth" class="hover:text-green-300"
+        >harper.eth</a
+      >
+      /
+      <a class="hover:text-green-300" href="https://twitter.com/harper"
+        >@harper</a
+      ><br />
+      <a class="hover:text-green-300" href="mailto:harper@modest.com"
+        >harper@modest.com</a
+      >
+    </div>
   </div>
 </template>
 
@@ -306,64 +293,93 @@
 export default {
   data() {
     return {
-      contractAddress: "0x495f947276749ce646f68ac8c248420045cb7b5e",
-      tokenId: "12830345331175526280463936575724208108263643015557233882150701312422960955393",
-      network: "mainnet",
-      validateResponse: {},
-      openSeaLoaded: false,
-      tokenLoaded: false,
-      validateResponseRaw: "",
-      loading: false,
-      tokenMetadata: {},
-      tokenMetadataRaw: {},
+      contractAddress: "0x27bd53b275e7d7c812e70497b85f99cceb9a068c",
+      IPFSMetadataHash: "QmV5uq3iyJ2x9ebAuK3mNqbX2Fmun1PjBnX9uLzwxUd4JH",
+      tokenId: undefined,
+      network: "rinkeby",
+      tokenMetadataRaw: "",
+      token: {},
     };
   },
-  methods: {
-    async getTokenInfo() {
-      this.loading = true;
-      this.resetData();
+  computed: {
+    tokenIPFSMetadataUrl() {
+      return `https://ipfs.io/ipfs/${this.IPFSMetadataHash}/${this.tokenId}`;
+    },
+    openseaTokenUrl() {
       let host = "testnets-api.opensea.io";
 
       if (this.network === "mainnet") {
         host = "api.opensea.io";
       }
 
-      const validateUrl = `https://${host}/asset/${this.contractAddress}/${this.tokenId}/validate/`;
-      console.log(validateUrl);
-      try {
-        const validateResponse = await this.$axios.$get(validateUrl);
-        this.validateResponse = validateResponse;
-        this.validateResponseRaw = JSON.stringify(validateResponse, null, 2);
-
-        if (validateResponse.token_uri) {
-          await this.getTokenPayload(validateResponse.token_uri);
-        }
-      } catch (e) {
-        console.log(e);
-        this.validateResponse = {
-          valid: false,
-          errors: [e.message],
-        };
+      if (this.contractAddress) {
+        return `https://${host}/assets/${this.contractAddress}/${this.tokenId}`;
+      } else {
+        return false;
       }
-      this.openSeaLoaded = true;
+    },
+    etherscanTokenUrl() {
+      let host = "testnets-api.opensea.io";
 
-      this.loading = false;
+      if (this.network === "mainnet") {
+        host = "etherscan.io";
+      }else if (this.network === "rinkeby") {
+        host = "rinkeby.etherscan.io";
+      }else if (this.network === "ropsten") {
+        host = "ropsten.etherscan.io";
+      } 
+
+
+      if (this.contractAddress) {
+        return `https://${host}/token/${this.contractAddress}?a=${this.tokenId}`;
+      } else {
+        return false;
+      }
+    },
+    openseaValidateTokenUrl() {
+      let host = "testnets-api.opensea.io";
+
+      if (this.network === "mainnet") {
+        host = "api.opensea.io";
+      }
+
+      if (this.contractAddress) {
+        return `https://${host}/asset/${this.contractAddress}/${this.IPFSMetadataHash}/validate/`;
+      } else {
+        return undefined;
+      }
+    },
+  },
+  watch: {
+    async tokenId(newValue) {
+      if (newValue) {
+        this.tokenMetadataRaw = "";
+        this.token = {};
+        const metadata = await this.getTokenPayload(this.tokenIPFSMetadataUrl);
+        this.tokenMetadataRaw = JSON.stringify(metadata, null, 2);
+        this.token = metadata;
+      }
+    },
+  },
+  methods: {
+    async startTokenReview() {
+      this.tokenId = 0;
       // console.log(response.data);
     },
 
     async getTokenPayload(url) {
       console.log(url);
       const tokenMetadata = await this.$axios.$get(url);
-      tokenMetadata['uri'] = url;
+      tokenMetadata["uri"] = url;
 
-      if (tokenMetadata.image.includes('ipfs://')) {
-        const ipfsUrl = tokenMetadata.image.replace('ipfs://', 'https://ipfs.io/');
+      if (tokenMetadata.image.includes("ipfs://")) {
+        const ipfsUrl = tokenMetadata.image.replace(
+          "ipfs://",
+          "https://ipfs.io/"
+        );
         tokenMetadata.image = ipfsUrl;
       }
-
-      this.tokenMetadata = tokenMetadata;
-      this.tokenMetadataRaw = JSON.stringify(tokenMetadata, null, 2);
-      this.tokenLoaded = true;
+      return tokenMetadata;
     },
     resetData() {
       this.tokenMetadata = {};

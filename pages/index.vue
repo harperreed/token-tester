@@ -222,9 +222,13 @@
                     <li>
                       <a :href="token.uri" target="_blank">Metadata URL</a>
                     </li>
+                    <li v-if="openseaValidateTokenUrl">
+                      <a :href="openseaValidateTokenUrl" target="_blank">Validate OpenSea Metdata</a>
+                    </li>
                     <li v-if="openseaTokenUrl">
                       <a :href="openseaTokenUrl" target="_blank">OpenSea URL</a>
                     </li>
+                    
                     <li v-if="etherscanTokenUrl"><a :href="etherscanTokenUrl" target="_blank">Etherscan Address</a></li>
                     <li v-if="contractAddress">Contract Address: {{ this.contractAddress }}</li>
                     
@@ -325,7 +329,7 @@ export default {
       }
 
       if (this.contractAddress) {
-        return `https://${host}/asset/${this.contractAddress}/${this.IPFSMetadataHash}/validate/`;
+        return `https://${host}/asset/${this.contractAddress}/${this.tokenId}/validate/`;
       } else {
         return undefined;
       }

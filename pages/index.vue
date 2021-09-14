@@ -118,13 +118,13 @@
               >
                 <div>
                   <ul class="flex pl-0 list-none rounded my-2 w-full">
-                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 ml-0 rounded-l hover:bg-gray-200"><button @click="prevTokenId" >Previous</button></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 ml-0 rounded-l hover:bg-gray-200"><button @click="prevTokenId" v-shortkey.once="['arrowleft']" @shortkey="prevTokenId">Previous</button></li>
                     <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId>1"><button  @click="jumpToTokenId((tokenId-2))">{{ `${tokenId-2}` }}</button></li>
                     <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId>0"><button @click="jumpToTokenId((tokenId-1))">{{ `${tokenId-1}` }}</button></li>
                     <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200"><input v-model="tokenId" class="text-center font-bold" /></li>
                     <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId<24999"><button @click="jumpToTokenId((tokenId+1))">{{ `${tokenId+1}` }}</button></li>
                     <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 border-r-0 hover:bg-gray-200" v-if="tokenId<24998"><button @click="jumpToTokenId((tokenId+2))"> {{ `${tokenId+2}` }}</button></li>
-                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 rounded-r hover:bg-gray-200"><button @click="nextTokenId" v-if="!(tokenId==24999)">Next</button><div v-else>end</div></li>
+                    <li class="relative block py-2 px-3 leading-tight bg-white border border-gray-300 text-blue-700 rounded-r hover:bg-gray-200"><button @click="nextTokenId" v-if="!(tokenId==24999)" v-shortkey.once="['arrowright']" @shortkey="nextTokenId">Next</button><div v-else>end</div></li>
                   </ul>
                 </div>
               </label>

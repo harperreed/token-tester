@@ -15,7 +15,7 @@
       "
     >
       <h1 class="text-3xl text-white font-bold">Harper.eth's Token Tester</h1>
-      {{ tokenIPFSMetadataUrl }}
+
       <div class="flex flex-wrap">
         <div class="w-full md:w-1/2 py-3">
           <div class="bg-white border rounded-xl p-4">
@@ -150,6 +150,8 @@
         </div>
       </div>
       <div class="flex sm:flex-row flex-col">
+
+        <div v-if="!loading">
         <div
           class="py-3 max-w-full sm:mr-4 bg-white border rounded-xl p-4"
           v-if="token"
@@ -159,11 +161,11 @@
               #{{ tokenId }} - {{ token.name }}
             </h3>
             <div class="flex sm:flex-row flex-col">
-              <div class="mr-4">
+              <div class="mr-4 sm:max-w-lg ">
                 <img
                   :src="token.image"
                   alt="token image "
-                  class="sm:max-w-lg"
+                  class="sm:max-w-full min-w-full bg-gray-300"
                 />
               </div>
               <div >
@@ -256,7 +258,12 @@
             />
           </div>
         </div>
+        </div>
+        <div v-else class="border px-4 py-2 bg-white rounded-xl animate-pulse">
+          loading
+        </div>
       </div>
+
     </div>
 
     <div class="container mx-auto text-center text-sm">
@@ -278,17 +285,23 @@
 export default {
   data() {
     return {
-      contractAddress: "",
-      IPFSMetadataHash: "",
+      contractAddress: "0x27bd53b275e7d7c812e70497b85f99cceb9a068c",
+      IPFSMetadataHash: "QmP1KQXjRSK4s2M2vfmVSUhjLdeJveBVDftnF4ngPyN8fE",
       tokenId: 0,
       network: "rinkeby",
       tokenMetadataRaw: "",
       token: {},
+      loading: false,
     };
   },
   computed: {
     tokenIPFSMetadataUrl() {
-      return `https://nervous.mypinata.cloud/ipfs/${this.IPFSMetadataHash}/${this.tokenId}`;
+
+      if (this.IPFSMetadataHash && this.tokenId){
+        return `https://nervous.mypinata.cloud/ipfs/${this.IPFSMetadataHash}/${this.tokenId}`;
+      }else{
+        return undefined;
+      }
     },
     openseaTokenUrl() {
       let host = "testnets.opensea.io";
@@ -338,16 +351,24 @@ export default {
   watch: {
     async tokenId(newValue) {
       if (newValue) {
+        
         this.tokenMetadataRaw = "";
         this.token = {};
-        const metadata = await this.getTokenPayload(this.tokenIPFSMetadataUrl);
-        if (metadata) {
-          this.tokenMetadataRaw = JSON.stringify(metadata, null, 2);
-          this.token = metadata;
+        console.log(this.tokenIPFSMetadataUrl)
+        if (this.tokenIPFSMetadataUrl){
+          const metadata = await this.getTokenPayload(this.tokenIPFSMetadataUrl);
+          if (metadata) {
+            this.tokenMetadataRaw = JSON.stringify(metadata, null, 2);
+            this.token = metadata;
+          }else{
+            // this.tokenMetadataRaw = "";
+            this.token = undefined;
+          }
         }else{
-          // this.tokenMetadataRaw = "";
-          this.token = undefined;
+           this.token = undefined;
+           this.tokenMetadataRaw = undefined;
         }
+       
       }
     },
   },
@@ -370,25 +391,27 @@ export default {
     },
 
     async getTokenPayload(url) {
-
+      this.loading = true;
       try{
 
-      const tokenMetadata = await this.$axios.$get(url);
-     
+        const tokenMetadata = await this.$axios.$get(url);
+      
 
-      tokenMetadata["uri"] = url;
+        tokenMetadata["uri"] = url;
 
-      if (tokenMetadata.image.includes("ipfs://")) {
-        const ipfsUrl = tokenMetadata.image.replace(
-          "ipfs://",
-          "https://ipfs.io/"
-        );
-        tokenMetadata.image = ipfsUrl;
-      }
-      return tokenMetadata;
+        if (tokenMetadata.image.includes("ipfs://")) {
+          const ipfsUrl = tokenMetadata.image.replace(
+            "ipfs://",
+            "https://ipfs.io/"
+          );
+          tokenMetadata.image = ipfsUrl;
+        }
+        this.loading = false;
+        return tokenMetadata;
        }catch(e){
         console.log(e);
         this.tokenMetadataRaw = JSON.stringify(e.message, null, 2);
+        this.loading = false;
         return undefined
       }
     },
